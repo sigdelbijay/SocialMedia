@@ -184,7 +184,6 @@ public class UploadActivity extends AppCompatActivity {
 
         }
 
-
         super.onActivityResult(requestCode, resultCode, data);
     }
 

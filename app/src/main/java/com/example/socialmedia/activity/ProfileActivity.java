@@ -149,6 +149,7 @@ public class ProfileActivity extends AppCompatActivity implements DialogInterfac
                             }
                         }
                     });
+                    builder.show();
                 }
             }
         });
@@ -211,9 +212,7 @@ public class ProfileActivity extends AppCompatActivity implements DialogInterfac
     }
 
     @Override
-    public void onDismiss(DialogInterface dialog) {
-
-    }
+    public void onDismiss(DialogInterface dialog) { }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {

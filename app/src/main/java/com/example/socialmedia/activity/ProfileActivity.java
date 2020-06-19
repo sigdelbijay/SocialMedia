@@ -1,10 +1,13 @@
 package com.example.socialmedia.activity;
 
+import android.app.ActivityOptions;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
+import android.util.Pair;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -114,7 +117,7 @@ public class ProfileActivity extends AppCompatActivity implements DialogInterfac
             @Override
             public void onClick(View v) {
                 if (current_state == 5) {
-                    CharSequence options[] = new CharSequence[]{"Change profile picture", "Change profile cover", "View cover picture", "View profile picture"};
+                    CharSequence options[] = new CharSequence[]{"Change profile picture", "Change profile cover", "View profile picture", "View cover picture"};
                     AlertDialog.Builder builder = new AlertDialog.Builder(ProfileActivity.this);
                     builder.setOnDismissListener(ProfileActivity.this);
                     builder.setTitle("Choose Options");
@@ -143,9 +146,13 @@ public class ProfileActivity extends AppCompatActivity implements DialogInterfac
                                         .start();
 
                             } else if (position == 2) {
-                                //"View cover picture"
-                            } else {
                                 //"View profile picture"
+                                viewFullImage(profileImage, profileUrl);
+
+                            } else {
+                                //"View cover picture"
+                                viewFullImage(profileCover, coverUrl);
+
                             }
                         }
                     });
@@ -153,6 +160,22 @@ public class ProfileActivity extends AppCompatActivity implements DialogInterfac
                 }
             }
         });
+
+    }
+
+    private void viewFullImage(View view, String url) {
+        Intent intent = new Intent(ProfileActivity.this, FullImageActivity.class);
+        intent.putExtra("imageUrl", url);
+
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            //for transition
+            Pair pairs[] = new Pair[1];
+            pairs[0] = new Pair<View, String>(view, "shared");
+            ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(ProfileActivity.this, pairs);
+            startActivity(intent, options.toBundle());
+        } else {
+            startActivity(intent);
+        }
 
     }
 
@@ -197,6 +220,9 @@ public class ProfileActivity extends AppCompatActivity implements DialogInterfac
                             }
                         });
                     }
+
+                    //add click event to images once images are loaded
+                    addImageCoverClick();
                 } else {
                     Toast.makeText(ProfileActivity.this, "Something went wrong... Please try again later", Toast.LENGTH_SHORT).show();
 
@@ -207,6 +233,22 @@ public class ProfileActivity extends AppCompatActivity implements DialogInterfac
             public void onFailure(Call<User> call, Throwable t) {
                 progressDialog.dismiss();
                 Toast.makeText(ProfileActivity.this, "Something went wrong... Please try again later", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void addImageCoverClick() {
+        profileCover.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                viewFullImage(profileCover, coverUrl);
+            }
+        });
+
+        profileImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                viewFullImage(profileImage, profileUrl);
             }
         });
     }

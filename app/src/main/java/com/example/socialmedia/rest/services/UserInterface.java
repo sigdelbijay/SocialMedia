@@ -3,6 +3,7 @@ package com.example.socialmedia.rest.services;
 import com.example.socialmedia.activity.LoginActivity;
 import com.example.socialmedia.model.User;
 
+import java.util.List;
 import java.util.Map;
 
 import okhttp3.MultipartBody;
@@ -26,4 +27,7 @@ public interface UserInterface {
 
     @POST("uploadImage")
     Call<Integer> uploadImage(@Body MultipartBody requestBody);
+
+    @GET("search")
+    Call<List<User>> search(@QueryMap Map<String, String> params);
 }

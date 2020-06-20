@@ -1,10 +1,12 @@
 package com.example.socialmedia.activity;
 
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -24,6 +26,7 @@ import com.google.firebase.auth.FirebaseAuth;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -41,6 +44,8 @@ public class MainActivity extends AppCompatActivity {
     NewsFeedFragment newsFeedFragment;
     NotificationFragment notificationFragment;
     FriendsFragment friendsFragment;
+    @BindView(R.id.search)
+    ImageView search;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,5 +99,10 @@ public class MainActivity extends AppCompatActivity {
         FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
         fragmentTransaction.replace(R.id.framelayout, fragment);
         fragmentTransaction.commit();
+    }
+
+    @OnClick(R.id.search)
+    public void onViewClicked() {
+        startActivity(new Intent(MainActivity.this, SearchActivity.class));
     }
 }

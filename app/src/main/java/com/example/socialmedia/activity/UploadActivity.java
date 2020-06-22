@@ -177,7 +177,7 @@ public class UploadActivity extends AppCompatActivity {
                         .compressToFile(new File(selectedImage.getPath()));
 
                 isImageSelected = true;
-                Picasso.with(UploadActivity.this).load(new File(selectedImage.getPath())).placeholder(R.drawable.default_image_placeholder);
+                Picasso.with(UploadActivity.this).load(new File(selectedImage.getPath())).placeholder(R.drawable.default_image_placeholder).into(image);
             } catch (IOException e) {
                 e.printStackTrace();
             }

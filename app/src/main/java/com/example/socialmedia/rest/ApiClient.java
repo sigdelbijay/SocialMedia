@@ -10,7 +10,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class ApiClient extends Activity {
 
 //    public static final String BASE_URL = "https://10.0.2.2/socialmedia/app";
-    public static final String BASE_URL = "http://10.0.2.2:8000/app/";
+    public static final String BASE_URL = "http://54.253.98.145:8000/app/";
 
     private static Retrofit retrofit;
 

@@ -7,6 +7,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.ContactsContract;
+import android.util.Log;
 import android.util.Pair;
 import android.view.View;
 import android.widget.Button;
@@ -110,12 +112,14 @@ public class ProfileActivity extends AppCompatActivity implements DialogInterfac
             profileOptionBtn.setText("Edit profile");
             loadProfile();
         } else {
-
+            loadOtherProfile();
         }
 
         profileOptionBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Log.d("current_state", current_state+"");
+                profileOptionBtn.setEnabled(false);
                 if (current_state == 5) {
                     CharSequence options[] = new CharSequence[]{"Change profile picture", "Change profile cover", "View profile picture", "View cover picture"};
                     AlertDialog.Builder builder = new AlertDialog.Builder(ProfileActivity.this);
@@ -157,10 +161,49 @@ public class ProfileActivity extends AppCompatActivity implements DialogInterfac
                         }
                     });
                     builder.show();
+                } else if(current_state == 4) {
+                    CharSequence options[] = new CharSequence[]{"Send Friend Request"};
+                    AlertDialog.Builder builder = new AlertDialog.Builder(ProfileActivity.this);
+                    builder.setOnDismissListener(ProfileActivity.this);
+                    builder.setTitle("Choose Options");
+                    builder.setItems(options, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int position) {
+                            if (position == 0) {
+                                performAction(current_state);
+                            }
+                        }
+                    });
+                    builder.show();
                 }
             }
         });
 
+    }
+
+    private void performAction(int i) {
+        UserInterface userInterface = ApiClient.getApiClient().create(UserInterface.class);
+        Call<Integer> call = userInterface.performAction(new performAction(i+"", FirebaseAuth.getInstance().getCurrentUser().getUid(), uid));
+        call.enqueue(new Callback<Integer>() {
+            @Override
+            public void onResponse(Call<Integer> call, Response<Integer> response) {
+                if(response.body()==1) {
+                    if(i==4) {
+                        current_state = 2;
+                        profileOptionBtn.setText("Request Sent");
+                        Toast.makeText(ProfileActivity.this, "Request sent successfully", Toast.LENGTH_SHORT).show();
+                    } else {
+                        profileOptionBtn.setEnabled(false);
+                        profileOptionBtn.setText("Error...");
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Integer> call, Throwable t) {
+
+            }
+        });
     }
 
     private void viewFullImage(View view, String url) {
@@ -189,43 +232,9 @@ public class ProfileActivity extends AppCompatActivity implements DialogInterfac
             public void onResponse(Call<User> call, Response<User> response) {
                 progressDialog.dismiss();
                 if (response.body() != null) {
-                    profileUrl = response.body().getProfileUrl();
-                    coverUrl = response.body().getCoverUrl();
-                    collapsingToolbar.setTitle(response.body().getName());
-
-                    if (!profileUrl.isEmpty()) {
-                        Picasso.with(ProfileActivity.this).load(profileUrl).networkPolicy(NetworkPolicy.OFFLINE).into(profileImage, new com.squareup.picasso.Callback() {
-
-                            @Override
-                            public void onSuccess() {
-                            }
-
-                            @Override
-                            public void onError() {
-                                Picasso.with(ProfileActivity.this).load(profileUrl).into(profileImage);
-                            }
-                        });
-                    }
-
-                    if (!coverUrl.isEmpty()) {
-                        Picasso.with(ProfileActivity.this).load(coverUrl).networkPolicy(NetworkPolicy.OFFLINE).into(profileCover, new com.squareup.picasso.Callback() {
-
-                            @Override
-                            public void onSuccess() {
-                            }
-
-                            @Override
-                            public void onError() {
-                                Picasso.with(ProfileActivity.this).load(coverUrl).into(profileCover);
-                            }
-                        });
-                    }
-
-                    //add click event to images once images are loaded
-                    addImageCoverClick();
+                    showUserData(response.body());
                 } else {
                     Toast.makeText(ProfileActivity.this, "Something went wrong... Please try again later", Toast.LENGTH_SHORT).show();
-
                 }
             }
 
@@ -235,6 +244,68 @@ public class ProfileActivity extends AppCompatActivity implements DialogInterfac
                 Toast.makeText(ProfileActivity.this, "Something went wrong... Please try again later", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void loadOtherProfile() {
+        UserInterface userInterface = ApiClient.getApiClient().create(UserInterface.class);
+        Map<String, String> params = new HashMap<>();
+        params.put("uid", FirebaseAuth.getInstance().getCurrentUser().getUid());
+        params.put("profileId", uid);
+        Call<User> call = userInterface.loadOtherProfile(params);
+        call.enqueue(new Callback<User>() {
+            @Override
+            public void onResponse(Call<User> call, Response<User> response) {
+                progressDialog.dismiss();
+                if (response.body() != null) {
+                    showUserData(response.body());
+                    current_state = 4;
+                    profileOptionBtn.setText("Send Request");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<User> call, Throwable t) {
+                progressDialog.dismiss();
+                Toast.makeText(ProfileActivity.this, "Something went wrong... Please try again later", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void showUserData(User user) {
+        profileUrl = user.getProfileUrl();
+        coverUrl = user.getCoverUrl();
+        collapsingToolbar.setTitle(user.getName());
+
+        if (!profileUrl.isEmpty()) {
+            Picasso.with(ProfileActivity.this).load(profileUrl).networkPolicy(NetworkPolicy.OFFLINE).into(profileImage, new com.squareup.picasso.Callback() {
+
+                @Override
+                public void onSuccess() {
+                }
+
+                @Override
+                public void onError() {
+                    Picasso.with(ProfileActivity.this).load(profileUrl).into(profileImage);
+                }
+            });
+        }
+
+        if (!coverUrl.isEmpty()) {
+            Picasso.with(ProfileActivity.this).load(coverUrl).networkPolicy(NetworkPolicy.OFFLINE).into(profileCover, new com.squareup.picasso.Callback() {
+
+                @Override
+                public void onSuccess() {
+                }
+
+                @Override
+                public void onError() {
+                    Picasso.with(ProfileActivity.this).load(coverUrl).into(profileCover);
+                }
+            });
+        }
+
+        //add click event to images once images are loaded
+        addImageCoverClick();
     }
 
     private void addImageCoverClick() {
@@ -336,5 +407,15 @@ public class ProfileActivity extends AppCompatActivity implements DialogInterfac
             }
         });
 
+    }
+
+    public class performAction {
+        String operationType, userId, profileId;
+
+        public performAction(String operationType, String userId, String profileId) {
+            this.operationType = operationType;
+            this.userId = userId;
+            this.profileId = profileId;
+        }
     }
 }

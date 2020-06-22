@@ -1,6 +1,7 @@
 package com.example.socialmedia.rest.services;
 
 import com.example.socialmedia.activity.LoginActivity;
+import com.example.socialmedia.activity.ProfileActivity;
 import com.example.socialmedia.model.User;
 
 import java.util.List;
@@ -22,6 +23,9 @@ public interface UserInterface {
     @GET("loadownprofile")
     Call<User> loadownProfile(@QueryMap Map<String, String> params);
 
+    @GET("loadotherprofile")
+    Call<User> loadOtherProfile(@QueryMap Map<String, String> params);
+
     @POST("poststatus")
     Call<Integer> uploadStatus(@Body MultipartBody requestBody);
 
@@ -30,4 +34,7 @@ public interface UserInterface {
 
     @GET("search")
     Call<List<User>> search(@QueryMap Map<String, String> params);
+
+    @POST("performAction")
+    Call<Integer> performAction(@Body ProfileActivity.performAction performAction);
 }

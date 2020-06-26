@@ -72,16 +72,16 @@ public class MainActivity extends AppCompatActivity {
                 switch (item.getItemId()) {
                     case R.id.newsfeed_fragment:
                         setFragment(newsFeedFragment);
-                        break;
+                        return true;
                     case R.id.profile_fragment:
                         startActivity(new Intent(MainActivity.this, ProfileActivity.class).putExtra("uid", FirebaseAuth.getInstance().getCurrentUser().getUid()));
-                        break;
+                        return false;
                     case R.id.profile_notification:
                         setFragment(notificationFragment);
-                        break;
+                        return true;
                     case R.id.profile_friends:
                         setFragment(friendsFragment);
-                        break;
+                        return true;
                 }
                 return true;
             }

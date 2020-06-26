@@ -2,6 +2,8 @@ package com.example.socialmedia.rest.services;
 
 import com.example.socialmedia.activity.LoginActivity;
 import com.example.socialmedia.activity.ProfileActivity;
+import com.example.socialmedia.model.FriendsModel;
+import com.example.socialmedia.model.PostModel;
 import com.example.socialmedia.model.User;
 
 import java.util.List;
@@ -35,6 +37,12 @@ public interface UserInterface {
     @GET("search")
     Call<List<User>> search(@QueryMap Map<String, String> params);
 
+    @GET("profiletimeline")
+    Call<List<PostModel>> getProfilePosts(@QueryMap Map<String, String> params);
+
     @POST("performAction")
     Call<Integer> performAction(@Body ProfileActivity.performAction performAction);
+
+    @GET("loadfriends")
+    Call<FriendsModel> loadfriends(@QueryMap Map<String, String> params);
 }

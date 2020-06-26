@@ -52,6 +52,7 @@ public class SearchActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 startActivity(new Intent(SearchActivity.this, MainActivity.class));
+                finish();
             }
         });
 

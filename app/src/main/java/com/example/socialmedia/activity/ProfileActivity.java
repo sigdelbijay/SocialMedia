@@ -76,7 +76,7 @@ public class ProfileActivity extends AppCompatActivity implements DialogInterfac
      * 1 = two people are friends(unfriend)
      * 2 = this person has sent friend request to another friend(cancel request)
      * 3 = this person has received friend request from another friend(reject or accept request)
-     * 4 = people are known(you can send friend request
+     * 4 = people are unknown(you can send friend request
      * 5 = own profile
      * */
 
@@ -93,9 +93,6 @@ public class ProfileActivity extends AppCompatActivity implements DialogInterfac
         progressDialog.setCancelable(false);
         progressDialog.setMessage("Loading...");
         progressDialog.show();
-
-        profileViewPagerAdapter = new ProfileViewPagerAdapter(getSupportFragmentManager(), 1);
-        ViewPagerProfile.setAdapter(profileViewPagerAdapter);
 
         setSupportActionBar(toolbar);
         toolbar.setNavigationIcon(R.drawable.arrow_back_white);
@@ -170,6 +167,52 @@ public class ProfileActivity extends AppCompatActivity implements DialogInterfac
                         @Override
                         public void onClick(DialogInterface dialog, int position) {
                             if (position == 0) {
+                                profileOptionBtn.setText("Processing...");
+                                performAction(current_state);
+                            }
+                        }
+                    });
+                    builder.show();
+                } else if(current_state == 2) {
+                    CharSequence options[] = new CharSequence[]{"Cancel Friend Request"};
+                    AlertDialog.Builder builder = new AlertDialog.Builder(ProfileActivity.this);
+                    builder.setOnDismissListener(ProfileActivity.this);
+                    builder.setTitle("Choose Options");
+                    builder.setItems(options, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int position) {
+                            if (position == 0) {
+                                profileOptionBtn.setText("Processing...");
+                                performAction(current_state);
+                            }
+                        }
+                    });
+                    builder.show();
+                } else if(current_state == 3) {
+                    CharSequence options[] = new CharSequence[]{"Accept Friend Request"};
+                    AlertDialog.Builder builder = new AlertDialog.Builder(ProfileActivity.this);
+                    builder.setOnDismissListener(ProfileActivity.this);
+                    builder.setTitle("Choose Options");
+                    builder.setItems(options, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int position) {
+                            if (position == 0) {
+                                profileOptionBtn.setText("Processing...");
+                                performAction(current_state);
+                            }
+                        }
+                    });
+                    builder.show();
+                } else if(current_state == 1) {
+                    CharSequence options[] = new CharSequence[]{"Unfriend"};
+                    AlertDialog.Builder builder = new AlertDialog.Builder(ProfileActivity.this);
+                    builder.setOnDismissListener(ProfileActivity.this);
+                    builder.setTitle("Choose Options");
+                    builder.setItems(options, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int position) {
+                            if (position == 0) {
+                                profileOptionBtn.setText("Processing...");
                                 performAction(current_state);
                             }
                         }
@@ -187,11 +230,24 @@ public class ProfileActivity extends AppCompatActivity implements DialogInterfac
         call.enqueue(new Callback<Integer>() {
             @Override
             public void onResponse(Call<Integer> call, Response<Integer> response) {
+                profileOptionBtn.setEnabled(true);
                 if(response.body()==1) {
                     if(i==4) {
                         current_state = 2;
                         profileOptionBtn.setText("Request Sent");
                         Toast.makeText(ProfileActivity.this, "Request sent successfully", Toast.LENGTH_SHORT).show();
+                    } else if(i == 2) {
+                        current_state = 4;
+                        profileOptionBtn.setText("Send Request");
+                        Toast.makeText(ProfileActivity.this, "Request cancelled successfully", Toast.LENGTH_SHORT).show();
+                    } else if(i == 3) {
+                        current_state = 1;
+                        profileOptionBtn.setText("Friends");
+                        Toast.makeText(ProfileActivity.this, "You are friends in Social Media now !", Toast.LENGTH_SHORT).show();
+                    }else if(i == 1) {
+                        current_state = 4;
+                        profileOptionBtn.setText("Send Request");
+                        Toast.makeText(ProfileActivity.this, "You are no more friends", Toast.LENGTH_SHORT).show();
                     } else {
                         profileOptionBtn.setEnabled(false);
                         profileOptionBtn.setText("Error...");
@@ -258,8 +314,22 @@ public class ProfileActivity extends AppCompatActivity implements DialogInterfac
                 progressDialog.dismiss();
                 if (response.body() != null) {
                     showUserData(response.body());
-                    current_state = 4;
-                    profileOptionBtn.setText("Send Request");
+                    if(response.body().getState().equalsIgnoreCase("1")) {
+                        current_state = 1;
+                        profileOptionBtn.setText("Friends");
+                    } else if(response.body().getState().equalsIgnoreCase("2")) {
+                        current_state = 2;
+                        profileOptionBtn.setText("Cancel Request");
+                    } else if(response.body().getState().equalsIgnoreCase("3")) {
+                        current_state = 3;
+                        profileOptionBtn.setText("Accept Request");
+                    } else if(response.body().getState().equalsIgnoreCase("4")) {
+                        current_state = 4;
+                        profileOptionBtn.setText("Send Request");
+                    } else {
+                        current_state = 0;
+                        profileOptionBtn.setText("Error");
+                    }
                 }
             }
 
@@ -272,6 +342,10 @@ public class ProfileActivity extends AppCompatActivity implements DialogInterfac
     }
 
     private void showUserData(User user) {
+
+        profileViewPagerAdapter = new ProfileViewPagerAdapter(getSupportFragmentManager(), 1, user.getId(), user.getState());
+        ViewPagerProfile.setAdapter(profileViewPagerAdapter);
+
         profileUrl = user.getProfileUrl();
         coverUrl = user.getCoverUrl();
         collapsingToolbar.setTitle(user.getName());
@@ -325,7 +399,9 @@ public class ProfileActivity extends AppCompatActivity implements DialogInterfac
     }
 
     @Override
-    public void onDismiss(DialogInterface dialog) { }
+    public void onDismiss(DialogInterface dialog) {
+        profileOptionBtn.setEnabled(true);
+    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
@@ -409,7 +485,7 @@ public class ProfileActivity extends AppCompatActivity implements DialogInterfac
 
     }
 
-    public class performAction {
+    public static class performAction {
         String operationType, userId, profileId;
 
         public performAction(String operationType, String userId, String profileId) {

@@ -14,16 +14,19 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.socialmedia.R;
 import com.example.socialmedia.activity.FullPostActivity;
 import com.example.socialmedia.activity.ProfileActivity;
+import com.example.socialmedia.fragment.bottomsheets.CommentBottomSheet;
 import com.example.socialmedia.model.PostModel;
 import com.example.socialmedia.model.User;
 import com.example.socialmedia.rest.ApiClient;
 import com.example.socialmedia.rest.services.UserInterface;
 import com.example.socialmedia.util.AgoDateParse;
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.firebase.auth.FirebaseAuth;
 import com.squareup.picasso.NetworkPolicy;
 import com.squareup.picasso.Picasso;
@@ -167,7 +170,22 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
                 }
             }
         });
+
+
+        //comment section
+        holder.commentSection.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                BottomSheetDialogFragment bottomSheetDialogFragment = new CommentBottomSheet();
+                Bundle bundle = new Bundle();
+                bundle.putParcelable("postModel", Parcels.wrap(postModel));
+                bottomSheetDialogFragment.setArguments(bundle);
+                FragmentActivity fragmentActivity = (FragmentActivity) context;
+                bottomSheetDialogFragment.show(fragmentActivity.getSupportFragmentManager(), "commentFragment");
+            }
+        });
     }
+
 
     private void operationLike(@NonNull ViewHolder holder, PostModel postModel) {
         holder.likeImg.setImageResource(R.drawable.icon_like_selected);

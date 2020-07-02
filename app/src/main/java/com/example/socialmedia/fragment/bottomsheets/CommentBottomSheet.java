@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.graphics.Color;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.FrameLayout;
@@ -16,6 +17,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.socialmedia.R;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
@@ -55,11 +57,16 @@ public class CommentBottomSheet extends BottomSheetDialogFragment {
         View view = View.inflate(context, R.layout.bottom_sheet_layout, null);
         unbinder = ButterKnife.bind(this, view);
         dialog.setContentView(view);
+        //make transaparent and show rounded corner in comments top section
+        View view1 = (View) view.getParent();
+        view1.setBackgroundColor(Color.TRANSPARENT);
+
         dialog.setOnShowListener(new DialogInterface.OnShowListener() {
             @Override
             public void onShow(DialogInterface dialog) {
                 BottomSheetDialog dialog1 = (BottomSheetDialog) dialog;
-//                FrameLayout bottomsheet = dialog1.findViewById()
+                FrameLayout bottomsheet = dialog1.findViewById(com.google.android.material.R.id.design_bottom_sheet);
+                BottomSheetBehavior.from(bottomsheet).setState(BottomSheetBehavior.STATE_EXPANDED);
             }
         });
     }

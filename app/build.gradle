@@ -53,6 +53,10 @@ dependencies {
     // Picasso
     implementation 'com.squareup.picasso:picasso:2.5.2'
 
+    // Parcels for passing objects(or other than primitives) to another activity
+    implementation 'org.parceler:parceler-api:1.1.12'
+    annotationProcessor 'org.parceler:parceler:1.1.12'
+
     // support dependencies
     implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
     implementation 'com.google.android.material:material:1.2.0-alpha01'

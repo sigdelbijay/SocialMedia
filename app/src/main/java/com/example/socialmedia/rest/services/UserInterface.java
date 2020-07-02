@@ -2,6 +2,7 @@ package com.example.socialmedia.rest.services;
 
 import com.example.socialmedia.activity.LoginActivity;
 import com.example.socialmedia.activity.ProfileActivity;
+import com.example.socialmedia.adapter.PostAdapter;
 import com.example.socialmedia.model.FriendsModel;
 import com.example.socialmedia.model.PostModel;
 import com.example.socialmedia.model.User;
@@ -45,4 +46,10 @@ public interface UserInterface {
 
     @GET("loadfriends")
     Call<FriendsModel> loadfriends(@QueryMap Map<String, String> params);
+
+    @GET("gettimelinepost")
+    Call<List<PostModel>> gettimelinepost(@QueryMap Map<String, String> params);
+
+    @POST("likeunlike")
+    Call<Integer> likeunlike(@Body PostAdapter.AddLike addLike);
 }

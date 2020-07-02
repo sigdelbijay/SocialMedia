@@ -42,7 +42,7 @@ public class ProfileFragment extends Fragment {
     ProgressBar newsfeedProgressBar;
     Unbinder unbinder;
 
-    int limit = 3;
+    int limit = 2;
     int offset = 0;
     boolean isFromStart = true;
     PostAdapter postAdapter;
@@ -70,6 +70,23 @@ public class ProfileFragment extends Fragment {
         newsfeed.setAdapter(postAdapter);
         uid = getArguments().getString("uid");
         current_state = getArguments().getString("current_state");
+
+        newsfeed.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                int visibleItemCount = linearLayoutManager.getChildCount();
+                int totalItemCount = linearLayoutManager.getItemCount();
+                int passVisibleItems = linearLayoutManager.findFirstCompletelyVisibleItemPosition();
+
+                if((passVisibleItems + visibleItemCount) >= totalItemCount) {
+                    isFromStart = false;
+                    newsfeedProgressBar.setVisibility(View.VISIBLE);
+                    offset = offset + limit;
+                    loadProfilePost();
+                }
+            }
+        });
+
         return view;
     }
 
@@ -92,14 +109,13 @@ public class ProfileFragment extends Fragment {
         call.enqueue(new Callback<List<PostModel>>() {
             @Override
             public void onResponse(Call<List<PostModel>> call, Response<List<PostModel>> response) {
-                if(response.body().size() > 0) {
-//                    Log.i("response--------", response.body()+"");
-                    newsfeedProgressBar.setVisibility(View.GONE);
+                newsfeedProgressBar.setVisibility(View.GONE);
+                if(response.body() != null) {
                     postModels.addAll(response.body());
-                    if (isFromStart) {
+                    if (!isFromStart) {
                         newsfeed.setAdapter(postAdapter);
                     } else {
-                        postAdapter.notifyDataSetChanged();
+                        postAdapter.notifyItemRangeInserted(postModels.size(), response.body().size());
                     }
                 }
             }
@@ -110,6 +126,13 @@ public class ProfileFragment extends Fragment {
                 Toast.makeText(context, "Something went wronggg !", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        postModels.clear();
+        postAdapter.notifyDataSetChanged();
     }
 
     @Override

@@ -19,6 +19,7 @@ import com.example.socialmedia.adapter.PostAdapter;
 import com.example.socialmedia.model.PostModel;
 import com.example.socialmedia.rest.ApiClient;
 import com.example.socialmedia.rest.services.UserInterface;
+import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -67,6 +68,22 @@ public class NewsFeedFragment extends Fragment {
 
         postAdapter = new PostAdapter(context, postModels);
         newsfeed.setAdapter(postAdapter);
+
+        newsfeed.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                int visibleItemCount = linearLayoutManager.getChildCount();
+                int totalItemCount = linearLayoutManager.getItemCount();
+                int passVisibleItems = linearLayoutManager.findFirstCompletelyVisibleItemPosition();
+
+                if((passVisibleItems + visibleItemCount) >= totalItemCount) {
+                    isFromStart = false;
+                    newsfeedProgressBar.setVisibility(View.VISIBLE);
+                    offset = offset + limit;
+                    loadTimeLine();
+                }
+            }
+        });
         return view;
     }
 
@@ -75,18 +92,17 @@ public class NewsFeedFragment extends Fragment {
         super.onStart();
         isFromStart = true;
         offset = 0;
-//        loadProfilePost();
+        loadTimeLine();
     }
 
-    private void loadProfilePost() {
+    private void loadTimeLine() {
 
         Map<String, String> params = new HashMap<String, String>();
-        params.put("uid", uid);
+        params.put("uid", FirebaseAuth.getInstance().getCurrentUser().getUid());
         params.put("limit", limit + "");
         params.put("offset", offset + "");
-        params.put("current_state", current_state);
         UserInterface userInterface = ApiClient.getApiClient().create(UserInterface.class);
-        Call<List<PostModel>> call = userInterface.getProfilePosts(params);
+        Call<List<PostModel>> call = userInterface.gettimelinepost(params);
         call.enqueue(new Callback<List<PostModel>>() {
             @Override
             public void onResponse(Call<List<PostModel>> call, Response<List<PostModel>> response) {
@@ -95,7 +111,7 @@ public class NewsFeedFragment extends Fragment {
                 if (isFromStart) {
                     newsfeed.setAdapter(postAdapter);
                 } else {
-                    postAdapter.notifyDataSetChanged();
+                    postAdapter.notifyItemRangeInserted(postModels.size(), response.body().size());
                 }
             }
 
@@ -111,5 +127,12 @@ public class NewsFeedFragment extends Fragment {
     public void onDestroyView() {
         super.onDestroyView();
         unbinder.unbind();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        postModels.clear();
+        postAdapter.notifyDataSetChanged();
     }
 }

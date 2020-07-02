@@ -3,6 +3,9 @@ package com.example.socialmedia.model;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
+import org.parceler.Parcel;
+
+@Parcel(Parcel.Serialization.BEAN)
 public class PostModel {
 
     @SerializedName("_id")
@@ -38,6 +41,9 @@ public class PostModel {
     @SerializedName("userToken")
     @Expose
     private String userToken;
+    @SerializedName("isLiked")
+    @Expose
+    private Boolean isLiked;
 
     public String getId() {
         return id;
@@ -93,6 +99,14 @@ public class PostModel {
 
     public void setHasComment(Integer hasComment) {
         this.hasComment = hasComment;
+    }
+
+    public Boolean getLiked() {
+        return isLiked;
+    }
+
+    public void setLiked(Boolean liked) {
+        isLiked = liked;
     }
 
     public String getPrivacy() {

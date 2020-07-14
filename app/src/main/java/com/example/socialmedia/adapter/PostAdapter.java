@@ -171,8 +171,12 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
             }
         });
 
-
         //comment section
+        if(postModel.getCommentCount().equals(0) || postModel.getCommentCount().equals(1)) {
+            holder.commentTxt.setText(postModel.getCommentCount() + " Comment");
+        } else {
+            holder.commentTxt.setText(postModel.getCommentCount() + " Comments");
+        }
         holder.commentSection.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -255,7 +259,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
         }
     }
 
-    public class AddLike {
+    public static class AddLike {
         String userId, postId, contentOwnerId, operationType;
 
         public AddLike(String userId, String postId, String contentOwnerId, String operationType) {
@@ -263,6 +267,21 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
             this.postId = postId;
             this.contentOwnerId = contentOwnerId;
             this.operationType = operationType;
+        }
+    }
+
+    public static class AddComment {
+        String comment, commentBy, level, superParentId, parentId, hasSubComment, postUserId, commentUserId;
+
+        public AddComment(String comment, String commentBy, String level, String superParentId, String parentId, String hasSubComment, String postUserId, String commentUserId) {
+            this.comment = comment;
+            this.commentBy = commentBy;
+            this.level = level;
+            this.superParentId = superParentId;
+            this.parentId = parentId;
+            this.hasSubComment = hasSubComment;
+            this.postUserId = postUserId;
+            this.commentUserId = commentUserId;
         }
     }
 }

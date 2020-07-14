@@ -27,6 +27,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.socialmedia.R;
 import com.example.socialmedia.adapter.CommentAdapter;
 import com.example.socialmedia.adapter.PostAdapter;
+import com.example.socialmedia.adapter.SubCommentAdapter;
 import com.example.socialmedia.model.CommentModel;
 import com.example.socialmedia.model.PostModel;
 import com.example.socialmedia.model.User;
@@ -51,7 +52,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class CommentBottomSheet extends BottomSheetDialogFragment {
+public class SubCommentBottomSheet extends BottomSheetDialogFragment {
 
     Context context;
     @BindView(R.id.comments_txt)
@@ -72,8 +73,10 @@ public class CommentBottomSheet extends BottomSheetDialogFragment {
 
     boolean isFlagZero = true;
     PostModel postModel;
-    CommentAdapter commentAdapter;
-    List<CommentModel.Result> results = new ArrayList<>();
+    SubCommentAdapter subCommentAdapter;
+    List<CommentModel.Comment> comments = new ArrayList<>();
+    CommentModel.Comment commentModel;
+    boolean isKeyPadOpen = false;
 
     @Override
     public void onAttach(@NonNull Context context) {
@@ -87,6 +90,8 @@ public class CommentBottomSheet extends BottomSheetDialogFragment {
         super.setupDialog(dialog, style);
         View view = View.inflate(context, R.layout.bottom_sheet_layout, null);
         postModel = Parcels.unwrap(getFragmentManager().findFragmentByTag("commentFragment").getArguments().getParcelable("postModel"));
+        commentModel = Parcels.unwrap(getFragmentManager().findFragmentByTag("commentFragment").getArguments().getParcelable("commentModel"));
+        isKeyPadOpen = getFragmentManager().findFragmentByTag("commentFragment").getArguments().getBoolean("openkeyBoard", false);
         unbinder = ButterKnife.bind(this, view);
         dialog.setContentView(view);
 
@@ -103,7 +108,7 @@ public class CommentBottomSheet extends BottomSheetDialogFragment {
             }
         });
 
-        commentAdapter = new CommentAdapter(context, results, postModel);
+        subCommentAdapter = new SubCommentAdapter(context, comments);
         if(postModel.getCommentCount().equals(0) || postModel.getCommentCount().equals(1)) {
             commentsTxt.setText(postModel.getCommentCount() + " Comment");
         } else {
@@ -154,7 +159,7 @@ public class CommentBottomSheet extends BottomSheetDialogFragment {
                 ((InputMethodManager) getContext().getSystemService(getContext().INPUT_METHOD_SERVICE)).toggleSoftInput(InputMethodManager.HIDE_IMPLICIT_ONLY, 0);
 
                 UserInterface userInterface = ApiClient.getApiClient().create(UserInterface.class);
-                PostAdapter.AddComment addComment = new PostAdapter.AddComment(comment, FirebaseAuth.getInstance().getCurrentUser().getUid(), "0", "0", postModel.getId(), "0", postModel.getPostUserId(), "");
+                PostAdapter.AddComment addComment = new PostAdapter.AddComment(comment, FirebaseAuth.getInstance().getCurrentUser().getUid(), "1", postModel.getId(), commentModel.getId(), "1", postModel.getPostUserId(), commentModel.getCommentBy());
                 Call<CommentModel> call = userInterface.postcomment(addComment);
                 call.enqueue(new Callback<CommentModel>() {
                     @Override
@@ -165,9 +170,9 @@ public class CommentBottomSheet extends BottomSheetDialogFragment {
                             commentsTxt.setText(commentCount + "Comments");
 
                             //once comment is sent load in our recyclerview
-                            results.add(response.body().getResults().get(0));
-                            int position = results.indexOf(response.body().getResults().get(0));
-                            commentAdapter.notifyItemInserted(position);
+                            comments.add(response.body().getResults().get(0).getComment());
+                            int position = comments.indexOf(response.body().getResults().get(0).getComment());
+                            subCommentAdapter.notifyItemInserted(position);
                             commentRecy.scrollToPosition(position);
                         } else {
                             Toast.makeText(context, "Something went wrongg !", Toast.LENGTH_SHORT).show();
@@ -187,20 +192,21 @@ public class CommentBottomSheet extends BottomSheetDialogFragment {
         UserInterface userInterface = ApiClient.getApiClient().create(UserInterface.class);
         Map<String, String> params = new HashMap<String, String>();
         params.put("postId", postModel.getId());
-        Call<CommentModel> call = userInterface.retrievetopcomment(params);
-        call.enqueue(new Callback<CommentModel>() {
+        params.put("commentId", commentModel.getId());
+        Call<List<CommentModel.Comment>> call = userInterface.retrievelowlevelcomment(params);
+        call.enqueue(new Callback<List<CommentModel.Comment>>() {
             @Override
-            public void onResponse(Call<CommentModel> call, Response<CommentModel> response) {
-                if(response.body().getResults().size() > 0) {
-                    results.addAll(response.body().getResults());
-                    commentRecy.setAdapter(commentAdapter);
+            public void onResponse(Call<List<CommentModel.Comment>> call, Response<List<CommentModel.Comment>> response) {
+                if(response.body().size() > 0) {
+                    comments.addAll(response.body());
+                    commentRecy.setAdapter(subCommentAdapter);
                 } else {
                     Toast.makeText(context, "No comments found !", Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
-            public void onFailure(Call<CommentModel> call, Throwable t) {
+            public void onFailure(Call<List<CommentModel.Comment>> call, Throwable t) {
                 Toast.makeText(context, "Something went wrong !", Toast.LENGTH_SHORT).show();
             }
         });

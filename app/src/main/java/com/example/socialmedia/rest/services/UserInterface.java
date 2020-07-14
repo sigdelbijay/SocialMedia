@@ -3,7 +3,9 @@ package com.example.socialmedia.rest.services;
 import com.example.socialmedia.activity.LoginActivity;
 import com.example.socialmedia.activity.ProfileActivity;
 import com.example.socialmedia.adapter.PostAdapter;
+import com.example.socialmedia.model.CommentModel;
 import com.example.socialmedia.model.FriendsModel;
+import com.example.socialmedia.model.NotificationModel;
 import com.example.socialmedia.model.PostModel;
 import com.example.socialmedia.model.User;
 
@@ -52,4 +54,20 @@ public interface UserInterface {
 
     @POST("likeunlike")
     Call<Integer> likeunlike(@Body PostAdapter.AddLike addLike);
+
+    @POST("postcomment")
+    Call<CommentModel> postcomment(@Body PostAdapter.AddComment addComment);
+
+    @GET("retrievetopcomment")
+    Call<CommentModel> retrievetopcomment(@QueryMap Map<String, String> params);
+
+    @GET("retrievelowlevelcomment")
+    Call<List<CommentModel.Comment>> retrievelowlevelcomment(@QueryMap Map<String, String> params);
+
+    @GET("getnotification")
+    Call<List<NotificationModel>> getnotification(@QueryMap Map<String, String> params);
+
+    @GET("notification/postdetails")
+    Call<PostModel> postdetails(@QueryMap Map<String, String> params);
+
 }

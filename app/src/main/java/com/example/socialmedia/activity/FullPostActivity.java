@@ -9,20 +9,34 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.cardview.widget.CardView;
+import androidx.fragment.app.FragmentActivity;
 
 import com.example.socialmedia.R;
+import com.example.socialmedia.adapter.PostAdapter;
+import com.example.socialmedia.fragment.bottomsheets.CommentBottomSheet;
 import com.example.socialmedia.model.PostModel;
+import com.example.socialmedia.rest.ApiClient;
+import com.example.socialmedia.rest.services.UserInterface;
 import com.example.socialmedia.util.AgoDateParse;
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
+import com.google.firebase.auth.FirebaseAuth;
 import com.squareup.picasso.NetworkPolicy;
 import com.squareup.picasso.Picasso;
 
 import org.parceler.Parcels;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class FullPostActivity extends AppCompatActivity {
 
@@ -73,12 +87,19 @@ public class FullPostActivity extends AppCompatActivity {
         setContentView(R.layout.activity_full_post);
         ButterKnife.bind(this);
 
-        postModel = Parcels.unwrap(getIntent().getBundleExtra("postBundle").getParcelable("postModel"));
-        if(postModel == null) {
-            Toast.makeText(FullPostActivity.this, "Something went wrong !", Toast.LENGTH_SHORT).show();
-            onBackPressed();
-            finish();
+        boolean isLoadFromNetwork = getIntent().getBundleExtra("postBundle").getBoolean("isLoadFromNetwork", false);
+        String postId = getIntent().getBundleExtra("postBundle").getString("postId", "0");
+        if(isLoadFromNetwork) {
+            getPostDetails(postId);
+        } else {
+            postModel = Parcels.unwrap(getIntent().getBundleExtra("postBundle").getParcelable("postModel"));
+            setData(postModel);
         }
+//        if(postModel == null) {
+//            Toast.makeText(FullPostActivity.this, "Something went wrong !", Toast.LENGTH_SHORT).show();
+//            onBackPressed();
+//            finish();
+//        }
 
         //setting the tool with back button
         setSupportActionBar(toolbar);
@@ -90,10 +111,103 @@ public class FullPostActivity extends AppCompatActivity {
                 onBackPressed();
             }
         });
-        setData(postModel);
+    }
+
+    private void getPostDetails(String postId) {
+        UserInterface userInterface = ApiClient.getApiClient().create(UserInterface.class);
+        Map<String, String > params = new HashMap<String, String>();
+        params.put("uid", FirebaseAuth.getInstance().getCurrentUser().getUid());
+        params.put("postId", postId);
+        Call<PostModel> call = userInterface.postdetails(params);
+        call.enqueue(new Callback<PostModel>() {
+            @Override
+            public void onResponse(Call<PostModel> call, Response<PostModel> response) {
+                setData(response.body());
+            }
+
+            @Override
+            public void onFailure(Call<PostModel> call, Throwable t) {
+                Toast.makeText(FullPostActivity.this, "Something went wrong !", Toast.LENGTH_SHORT).show();
+                FullPostActivity.super.onBackPressed();
+            }
+        });
     }
 
     private void setData(PostModel postModel) {
+
+        if (postModel.getLiked()) {
+            likeImg.setImageResource(R.drawable.icon_like_selected);
+        } else {
+            likeImg.setImageResource(R.drawable.icon_like);
+        }
+
+        if(postModel.getLikeCount().equals(0) || postModel.getLikeCount().equals(1)) {
+            likeTxt.setText(postModel.getLikeCount() + " Like");
+        } else {
+            likeTxt.setText(postModel.getLikeCount() + " Likes");
+        }
+        if(postModel.getCommentCount().equals(0) || postModel.getCommentCount().equals(1)) {
+            commentTxt.setText(postModel.getCommentCount() + " Comment");
+        } else {
+            commentTxt.setText(postModel.getCommentCount() + " Comments");
+        }
+
+        commentSection.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                BottomSheetDialogFragment bottomSheetDialogFragment = new CommentBottomSheet();
+                Bundle bundle = new Bundle();
+                bundle.putParcelable("postModel", Parcels.wrap(postModel));
+                bottomSheetDialogFragment.setArguments(bundle);
+                FragmentActivity fragmentActivity = (FragmentActivity) FullPostActivity.this;
+                bottomSheetDialogFragment.show(fragmentActivity.getSupportFragmentManager(), "commentFragment");
+            }
+        });
+
+        likeSection.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                likeSection.setEnabled(false);
+                if (!postModel.getLiked()) {
+                    //like operation here
+                    operationLike(postModel);
+                    UserInterface userInterface = ApiClient.getApiClient().create(UserInterface.class);
+                    Call<Integer> call = userInterface.likeunlike(new PostAdapter.AddLike(FirebaseAuth.getInstance().getCurrentUser().getUid(), postModel.getId(), postModel.getPostUserId(), "1"));
+                    call.enqueue(new Callback<Integer>() {
+                        @Override
+                        public void onResponse(Call<Integer> call, Response<Integer> response) {
+                            likeSection.setEnabled(true);
+                        }
+
+                        @Override
+                        public void onFailure(Call<Integer> call, Throwable t) {
+                            likeSection.setEnabled(true);
+//                            operationUnlike(postModel);
+//                            Toast.makeText(FullPostActivity.this, "Something went wrong !", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                } else {
+                    //unlike operation here
+                    operationUnlike(postModel);
+                    UserInterface userInterface = ApiClient.getApiClient().create(UserInterface.class);
+                    Call<Integer> call = userInterface.likeunlike(new PostAdapter.AddLike(FirebaseAuth.getInstance().getCurrentUser().getUid(), postModel.getId(), postModel.getPostUserId(), "0"));
+                    call.enqueue(new Callback<Integer>() {
+                        @Override
+                        public void onResponse(Call<Integer> call, Response<Integer> response) {
+                            likeSection.setEnabled(true);
+                        }
+
+                        @Override
+                        public void onFailure(Call<Integer> call, Throwable t) {
+                            likeSection.setEnabled(true);
+//                            operationLike(postModel);
+//                            Toast.makeText(FullPostActivity.this, "Something went wrong !", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+            }
+        });
+
         postUserName.setText(postModel.getName());
         if(!postModel.getUserProfile().isEmpty()) {
             Picasso.with(FullPostActivity.this).load(postModel.getUserProfile()).networkPolicy(NetworkPolicy.OFFLINE).placeholder(R.drawable.img_default_user).into(postUserImage, new com.squareup.picasso.Callback() {
@@ -131,5 +245,33 @@ public class FullPostActivity extends AppCompatActivity {
         } else {
             postImage.setVisibility(View.GONE);
         }
+    }
+
+    private void operationLike(PostModel postModel) {
+        likeImg.setImageResource(R.drawable.icon_like_selected);
+        int count = postModel.getLikeCount();
+        count++;
+        if (count == 0 || count == 1) {
+            likeTxt.setText(count + " Like");
+        } else {
+            likeTxt.setText(count + " Likes");
+        }
+
+        postModel.setLikeCount(count);
+        postModel.setLiked(true);
+    }
+
+    private void operationUnlike(PostModel postModel) {
+        likeImg.setImageResource(R.drawable.icon_like);
+        int count = postModel.getLikeCount();
+        count--;
+        if (count == 0 || count == 1) {
+            likeTxt.setText(count + " Like");
+        } else {
+            likeTxt.setText(count + " Likes");
+        }
+
+        postModel.setLikeCount(count);
+        postModel.setLiked(false);
     }
 }

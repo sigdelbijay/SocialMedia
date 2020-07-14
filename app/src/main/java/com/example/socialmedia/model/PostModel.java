@@ -45,6 +45,18 @@ public class PostModel {
     @Expose
     private Boolean isLiked;
 
+    public Integer getCommentCount() {
+        return commentCount;
+    }
+
+    public void setCommentCount(Integer commentCount) {
+        this.commentCount = commentCount;
+    }
+
+    @SerializedName("commentCount")
+    @Expose
+    private Integer commentCount;
+
     public String getId() {
         return id;
     }

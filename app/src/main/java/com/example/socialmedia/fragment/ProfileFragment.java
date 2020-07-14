@@ -20,6 +20,7 @@ import com.example.socialmedia.adapter.PostAdapter;
 import com.example.socialmedia.model.PostModel;
 import com.example.socialmedia.rest.ApiClient;
 import com.example.socialmedia.rest.services.UserInterface;
+import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -77,8 +78,9 @@ public class ProfileFragment extends Fragment {
                 int visibleItemCount = linearLayoutManager.getChildCount();
                 int totalItemCount = linearLayoutManager.getItemCount();
                 int passVisibleItems = linearLayoutManager.findFirstCompletelyVisibleItemPosition();
+                Log.i("visible items", "visibleItemCount -> " + visibleItemCount + "totalItemCount ->" + totalItemCount + "passVisibleItems ->"+ passVisibleItems);
 
-                if((passVisibleItems + visibleItemCount) >= totalItemCount) {
+                if((passVisibleItems + visibleItemCount) > offset + 1 && (passVisibleItems + visibleItemCount) >= totalItemCount) {
                     isFromStart = false;
                     newsfeedProgressBar.setVisibility(View.VISIBLE);
                     offset = offset + limit;
@@ -100,7 +102,13 @@ public class ProfileFragment extends Fragment {
 
     private void loadProfilePost() {
         Map<String, String> params = new HashMap<String, String>();
-        params.put("uid", uid);
+        if(current_state == "5"){
+            params.put("uid", uid);
+        }
+        else {
+            params.put("uid", FirebaseAuth.getInstance().getCurrentUser().getUid());
+            params.put("profileId", uid);
+        }
         params.put("limit", limit + "");
         params.put("offset", offset + "");
         params.put("current_state", current_state);

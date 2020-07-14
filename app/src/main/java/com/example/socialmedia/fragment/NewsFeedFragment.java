@@ -42,7 +42,7 @@ public class NewsFeedFragment extends Fragment {
     ProgressBar newsfeedProgressBar;
     Unbinder unbinder;
 
-    int limit = 3;
+    int limit = 2;
     int offset = 0;
     boolean isFromStart = true;
     PostAdapter postAdapter;
@@ -76,7 +76,7 @@ public class NewsFeedFragment extends Fragment {
                 int totalItemCount = linearLayoutManager.getItemCount();
                 int passVisibleItems = linearLayoutManager.findFirstCompletelyVisibleItemPosition();
 
-                if((passVisibleItems + visibleItemCount) >= totalItemCount) {
+                if((passVisibleItems + visibleItemCount) > offset + 1 && (passVisibleItems + visibleItemCount) >= totalItemCount) {
                     isFromStart = false;
                     newsfeedProgressBar.setVisibility(View.VISIBLE);
                     offset = offset + limit;

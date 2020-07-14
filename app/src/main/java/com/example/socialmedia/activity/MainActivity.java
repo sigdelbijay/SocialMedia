@@ -65,7 +65,21 @@ public class MainActivity extends AppCompatActivity {
         notificationFragment = new NotificationFragment();
         friendsFragment = new FriendsFragment();
 
-        setFragment(newsFeedFragment);
+        //directing to proper fragment if coming from notification
+        Bundle bundle = getIntent().getExtras();
+        String isFromNotification = "false";
+        if(bundle != null) {
+            isFromNotification = getIntent().getExtras().getString("isFromNotification", "false");
+            if(isFromNotification.equals("true")) {
+                bottomNavigation.getMenu().findItem(R.id.profile_notification).setChecked(true);
+                setFragment(notificationFragment);
+            } else {
+                setFragment(newsFeedFragment);
+            }
+        } else {
+            setFragment(newsFeedFragment);
+        }
+        
         bottomNavigation.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {

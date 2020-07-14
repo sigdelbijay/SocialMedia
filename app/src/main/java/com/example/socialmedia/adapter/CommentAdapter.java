@@ -75,7 +75,7 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.ViewHold
             } else {
                 holder.moreComments.setVisibility(View.VISIBLE);
                 totalComment--;
-                holder.moreComments.setText("View " + totalComment + " more comments");
+                holder.moreComments.setText("View " + totalComment + " more replies");
             }
             holder.subCommentBody.setText(result.getSubComments().getLastComment().get(0).getComment());
             holder.subCommentPerson.setText(result.getSubComments().getLastComment().get(0).getName());

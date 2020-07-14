@@ -108,17 +108,12 @@ public class SubCommentBottomSheet extends BottomSheetDialogFragment {
             }
         });
 
+        retrieveComments();
         subCommentAdapter = new SubCommentAdapter(context, comments);
-        if(postModel.getCommentCount().equals(0) || postModel.getCommentCount().equals(1)) {
-            commentsTxt.setText(postModel.getCommentCount() + " Comment");
-        } else {
-            commentsTxt.setText(postModel.getCommentCount() + " Comments");
-        }
 
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(context);
         commentRecy.setLayoutManager(linearLayoutManager);
 
-        retrieveComments();
         commentEdittext.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int start, int count, int after) {
@@ -165,9 +160,9 @@ public class SubCommentBottomSheet extends BottomSheetDialogFragment {
                     @Override
                     public void onResponse(Call<CommentModel> call, Response<CommentModel> response) {
                         if(response.body().getResults().size() > 0) {
-                            Toast.makeText(context, "Comment Successful", Toast.LENGTH_SHORT).show();
-                            int commentCount = postModel.getCommentCount();
-                            commentsTxt.setText(commentCount + "Comments");
+                            Toast.makeText(context, "Reply Successful", Toast.LENGTH_SHORT).show();
+                            int commentCount = comments.size();
+                            commentsTxt.setText(commentCount + 1 + " Replies");
 
                             //once comment is sent load in our recyclerview
                             comments.add(response.body().getResults().get(0).getComment());
@@ -200,8 +195,15 @@ public class SubCommentBottomSheet extends BottomSheetDialogFragment {
                 if(response.body().size() > 0) {
                     comments.addAll(response.body());
                     commentRecy.setAdapter(subCommentAdapter);
+
+                    //Update number of replies
+                    if(comments.size() == 0 || comments.size() == 1) {
+                        commentsTxt.setText(comments.size() + " Reply");
+                    } else {
+                        commentsTxt.setText(comments.size() + " Replies");
+                    }
                 } else {
-                    Toast.makeText(context, "No comments found !", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(context, "No replies found !", Toast.LENGTH_SHORT).show();
                 }
             }
 

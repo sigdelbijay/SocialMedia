@@ -162,7 +162,7 @@ public class CommentBottomSheet extends BottomSheetDialogFragment {
                         if(response.body().getResults().size() > 0) {
                             Toast.makeText(context, "Comment Successful", Toast.LENGTH_SHORT).show();
                             int commentCount = postModel.getCommentCount();
-                            commentsTxt.setText(commentCount + "Comments");
+                            commentsTxt.setText(commentCount + 1 + " Comments");
 
                             //once comment is sent load in our recyclerview
                             results.add(response.body().getResults().get(0));

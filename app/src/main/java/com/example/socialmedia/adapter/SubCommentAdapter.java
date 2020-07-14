@@ -59,6 +59,7 @@ public class SubCommentAdapter extends RecyclerView.Adapter<SubCommentAdapter.Vi
         }
 
         holder.commentDate.setText(AgoDateParse.getTimeAgo(result.getCommentDate()));
+        holder.replyTxt.setVisibility(View.GONE);
     }
 
     @Override

@@ -108,17 +108,15 @@ public class SubCommentBottomSheet extends BottomSheetDialogFragment {
             }
         });
 
-        retrieveComments();
         subCommentAdapter = new SubCommentAdapter(context, comments);
-
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(context);
         commentRecy.setLayoutManager(linearLayoutManager);
+        commentRecy.setAdapter(subCommentAdapter);
 
+        retrieveComments();
         commentEdittext.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence charSequence, int start, int count, int after) {
-
-            }
+            public void beforeTextChanged(CharSequence charSequence, int start, int count, int after) { }
 
             @Override
             public void onTextChanged(CharSequence charSequence, int start, int before, int count) {
@@ -137,9 +135,7 @@ public class SubCommentBottomSheet extends BottomSheetDialogFragment {
             }
 
             @Override
-            public void afterTextChanged(Editable s) {
-
-            }
+            public void afterTextChanged(Editable s) { }
         });
 
         commentSendWrapper.setOnClickListener(new View.OnClickListener() {
@@ -161,14 +157,15 @@ public class SubCommentBottomSheet extends BottomSheetDialogFragment {
                     public void onResponse(Call<CommentModel> call, Response<CommentModel> response) {
                         if(response.body().getResults().size() > 0) {
                             Toast.makeText(context, "Reply Successful", Toast.LENGTH_SHORT).show();
-                            int commentCount = comments.size();
-                            commentsTxt.setText(commentCount + 1 + " Replies");
+                            int commentCount = comments.size() + 1;
+                            if(commentCount == 1) commentsTxt.setText(commentCount + " Reply");
+                            else commentsTxt.setText(commentCount + " Replies");
 
                             //once comment is sent load in our recyclerview
-                            comments.add(response.body().getResults().get(0).getComment());
-                            int position = comments.indexOf(response.body().getResults().get(0).getComment());
-                            subCommentAdapter.notifyItemInserted(position);
-                            commentRecy.scrollToPosition(position);
+                            comments.add(0, response.body().getResults().get(0).getComment());
+//                            int position = comments.indexOf(response.body().getResults().get(0).getComment());
+                            subCommentAdapter.notifyItemInserted(0);
+                            commentRecy.scrollToPosition(0);
                         } else {
                             Toast.makeText(context, "Something went wrongg !", Toast.LENGTH_SHORT).show();
                         }
@@ -194,16 +191,17 @@ public class SubCommentBottomSheet extends BottomSheetDialogFragment {
             public void onResponse(Call<List<CommentModel.Comment>> call, Response<List<CommentModel.Comment>> response) {
                 if(response.body().size() > 0) {
                     comments.addAll(response.body());
-                    commentRecy.setAdapter(subCommentAdapter);
+                    subCommentAdapter.notifyDataSetChanged();
 
                     //Update number of replies
-                    if(comments.size() == 0 || comments.size() == 1) {
+                    if(comments.size() == 1) {
                         commentsTxt.setText(comments.size() + " Reply");
                     } else {
                         commentsTxt.setText(comments.size() + " Replies");
                     }
                 } else {
                     Toast.makeText(context, "No replies found !", Toast.LENGTH_SHORT).show();
+                    commentsTxt.setText(0 + " Reply");
                 }
             }
 

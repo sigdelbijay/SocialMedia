@@ -8,6 +8,7 @@ import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -104,32 +105,30 @@ public class CommentBottomSheet extends BottomSheetDialogFragment {
         });
 
         commentAdapter = new CommentAdapter(context, results, postModel);
-        if(postModel.getCommentCount().equals(0) || postModel.getCommentCount().equals(1)) {
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(context);
+        commentRecy.setLayoutManager(linearLayoutManager);
+        commentRecy.setAdapter(commentAdapter);
+
+        retrieveComments();
+        if (postModel.getCommentCount().equals(0) || postModel.getCommentCount().equals(1)) {
             commentsTxt.setText(postModel.getCommentCount() + " Comment");
         } else {
             commentsTxt.setText(postModel.getCommentCount() + " Comments");
         }
-
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(context);
-        commentRecy.setLayoutManager(linearLayoutManager);
-
-        retrieveComments();
         commentEdittext.addTextChangedListener(new TextWatcher() {
             @Override
-            public void beforeTextChanged(CharSequence charSequence, int start, int count, int after) {
-
-            }
+            public void beforeTextChanged(CharSequence charSequence, int start, int count, int after) { }
 
             @Override
             public void onTextChanged(CharSequence charSequence, int start, int before, int count) {
                 Drawable img1 = getResources().getDrawable(R.drawable.icon_before_comment_send);
                 Drawable img2 = getResources().getDrawable(R.drawable.icon_after_comment_send);
 
-                if(charSequence.toString().trim().length() == 0) {
+                if (charSequence.toString().trim().length() == 0) {
                     isFlagZero = true;
                     commentSendWrapper.setBackgroundResource(R.drawable.icon_background_before_comment);
                     loadImageWithAnimation(context, img1);
-                } else if(charSequence.toString().trim().length() != 0 && isFlagZero) {
+                } else if (charSequence.toString().trim().length() != 0 && isFlagZero) {
                     isFlagZero = false;
                     commentSendWrapper.setBackgroundResource(R.drawable.icon_background_after_comment);
                     loadImageWithAnimation(context, img2);
@@ -137,15 +136,13 @@ public class CommentBottomSheet extends BottomSheetDialogFragment {
             }
 
             @Override
-            public void afterTextChanged(Editable s) {
-
-            }
+            public void afterTextChanged(Editable s) { }
         });
 
         commentSendWrapper.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(isFlagZero) {
+                if (isFlagZero) {
                     return;
                 }
                 final String comment = commentEdittext.getText().toString().trim();
@@ -159,16 +156,20 @@ public class CommentBottomSheet extends BottomSheetDialogFragment {
                 call.enqueue(new Callback<CommentModel>() {
                     @Override
                     public void onResponse(Call<CommentModel> call, Response<CommentModel> response) {
-                        if(response.body().getResults().size() > 0) {
+                        if (response.body().getResults().size() > 0) {
                             Toast.makeText(context, "Comment Successful", Toast.LENGTH_SHORT).show();
-                            int commentCount = postModel.getCommentCount();
-                            commentsTxt.setText(commentCount + 1 + " Comments");
+                            postModel.setCommentCount(postModel.getCommentCount() + 1);
+                            if (postModel.getCommentCount() == 1) commentsTxt.setText(postModel.getCommentCount() + " Comment");
+                            else commentsTxt.setText(postModel.getCommentCount() + " Comments");
 
                             //once comment is sent load in our recyclerview
-                            results.add(response.body().getResults().get(0));
-                            int position = results.indexOf(response.body().getResults().get(0));
-                            commentAdapter.notifyItemInserted(position);
-                            commentRecy.scrollToPosition(position);
+                            results.add(0, response.body().getResults().get(0));
+//                            int position = results.indexOf(response.body().getResults().get(0));
+                            commentAdapter.notifyItemInserted(0);
+                            linearLayoutManager.scrollToPosition(0);
+
+                            //update no. of comment is post's comment section as well
+
                         } else {
                             Toast.makeText(context, "Something went wrongg !", Toast.LENGTH_SHORT).show();
                         }
@@ -191,9 +192,9 @@ public class CommentBottomSheet extends BottomSheetDialogFragment {
         call.enqueue(new Callback<CommentModel>() {
             @Override
             public void onResponse(Call<CommentModel> call, Response<CommentModel> response) {
-                if(response.body().getResults().size() > 0) {
+                if (response.body().getResults().size() > 0) {
                     results.addAll(response.body().getResults());
-                    commentRecy.setAdapter(commentAdapter);
+                    commentAdapter.notifyDataSetChanged();
                 } else {
                     Toast.makeText(context, "No comments found !", Toast.LENGTH_SHORT).show();
                 }
@@ -252,4 +253,11 @@ public class CommentBottomSheet extends BottomSheetDialogFragment {
         super.onDestroyView();
         unbinder.unbind();
     }
+
+//    @Override
+//    public void onResume() {
+//        super.onResume();
+//        results.clear();
+//        retrieveComments();
+//    }
 }

@@ -42,7 +42,7 @@ public class NewsFeedFragment extends Fragment {
     ProgressBar newsfeedProgressBar;
     Unbinder unbinder;
 
-    int limit = 2;
+    int limit = 5;
     int offset = 0;
     boolean isFromStart = true;
     PostAdapter postAdapter;
@@ -135,4 +135,5 @@ public class NewsFeedFragment extends Fragment {
         postModels.clear();
         postAdapter.notifyDataSetChanged();
     }
+    
 }
